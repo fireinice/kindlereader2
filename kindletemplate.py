@@ -137,7 +137,7 @@ page-break-after: always;
               &nbsp;&nbsp;
               {% if pocket_url %}<a href="{{ pocket_url }}">Send to Pocket</a>{% end %}
               &nbsp;&nbsp;
-              {% if feed.item_count > 0 %}
+              {% if feed.item_count == item_idx %}
                 {% set mark_read_url = read_marker.getMarkItemsReadURL(feed) %}
                 <a href="{{mark_read_url }}">Mark Above Items In Feed As Read</a>
               {% end %}
@@ -228,7 +228,6 @@ TEMPLATES['content.opf'] = """<?xml version="1.0" encoding="utf-8"?>
 {% if format == 'periodical' %}
 <x-metadata>
 <output encoding="utf-8" content-type="application/x-mobipocket-subscription-magazine"></output>
-</output>
 </x-metadata>
 {% end %}
 </metadata>

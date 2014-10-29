@@ -43,12 +43,16 @@ class PocketService(object):
 
 
 class FeedReadMarker(object):
-    def __init__(self, config):
-        self.mark_url = config.EDIT_TAG_URL
-        self.tag_read = config.TAG_READ
+    def __init__(self, host=None):
+        self.service_url = None
+        if not host:
+            return
+        self.service_url = "http://%s/sendinoreader/?" % host
 
     def getMarkItemsReadURL(self, feed):
+        if not self.service_url:
+            return ''
         itemIds = [item.id.split('/')[-1] for item in feed.items]
-        mark_url = self.mark_url + '?' + urllib.urlencode(
-            {'a': self.tag_read, 'i': itemIds}, True)
+        mark_url = self.service_url + urllib.urlencode(
+            {'info': itemIds}, True)
         return mark_url
