@@ -40,3 +40,15 @@ class PocketService(object):
         info_str = base64.b64encode(info_str)
         return self.service_url + urllib.urlencode({
             "info": info_str})
+
+
+class FeedReadMarker(object):
+    def __init__(self, config):
+        self.mark_url = config.EDIT_TAG_URL
+        self.tag_read = config.TAG_READ
+
+    def getMarkItemsReadURL(self, feed):
+        itemIds = [item.id.split('/')[-1] for item in feed.items]
+        mark_url = self.mark_url + '?' + urllib.urlencode(
+            {'a': self.tag_read, 'i': itemIds}, True)
+        return mark_url

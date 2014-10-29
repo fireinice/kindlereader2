@@ -82,68 +82,74 @@ page-break-after: always;
       {% if feed.item_count > 0 %}
         <mbp:pagebreak />
         <div id="sectionlist_{{ feed_idx }}" class="section">
-        {% if feed_idx < feed_count %}
-          <a href="#sectionlist_{{ feed_idx+1 }}">Next Feed</a> |
-        {% end %}
-        {% if feed_idx > 1 %}
-          <a href="#sectionlist_{{ feed_idx-1 }}">Previous Feed</a> |
-        {% end %}
-        <a href="#toc">TOC</a> |
-        {{ feed_idx }}/{{ feed_count }} |
-        {{ feed.item_count }} items
-        <br />
-        <h3>{{ feed.title }}</h3>
-        <ol>
-        {% set item_idx=0 %}
-        {% for item in feed.items %}
-          {% set item_idx=item_idx+1 %}
-            <div id="articleSignal_{{ feed_idx }}_{{ item_idx }}">
-              <li>
-                <a href="#article_{{ feed_idx }}_{{ item_idx }}">{{ item.title }}</a><br/>
-                {% if item.published %}{{ item.published }}{% end %}
-              </li>
+          {% if feed_idx < feed_count %}
+            <a href="#sectionlist_{{ feed_idx+1 }}">Next Feed</a> |
+          {% end %}
+          {% if feed_idx > 1 %}
+            <a href="#sectionlist_{{ feed_idx-1 }}">Previous Feed</a> |
+          {% end %}
+          <a href="#toc">TOC</a> |
+          {{ feed_idx }}/{{ feed_count }} |
+          {{ feed.item_count }} items
+          <br />
+          <h3>{{ feed.title }}</h3>
+          <ol>
+            {% set item_idx=0 %}
+            {% for item in feed.items %}
+              {% set item_idx=item_idx+1 %}
+              <div id="articleSignal_{{ feed_idx }}_{{ item_idx }}">
+                <li>
+                  <a href="#article_{{ feed_idx }}_{{ item_idx }}">{{ item.title }}</a><br/>
+                  {% if item.published %}{{ item.published }}{% end %}
+                </li>
+              </div>
+            {% end %}
+          </ol>
+        </div>
+      {% end %}
+    {% end %}
+  </div>
+  <mbp:pagebreak />
+  <div id="content">
+    {% set feed_idx=0 %}
+    {% for feed in feeds %}
+      {% set feed_idx=feed_idx+1 %}
+      {% if feed.item_count > 0 %}
+        <div id="section_{{ feed_idx }}" class="section">
+          {% set item_idx=0 %}
+          {% for item in feed.items %}
+            {% set item_idx=item_idx+1 %}
+            <div id="article_{{ feed_idx }}_{{ item_idx }}" class="article">
+              <h2 class="do_article_title">
+                {% if item.url %}
+                  <a href="{{ item.url }}">{{ item.title }}</a>
+                {% else %}
+                  {{ item.title }}
+                {% end %}
+              </h2>
+              {% if item.published %}{{ item.published }}{% end %}
+              <a href="#articleSignal_{{ feed_idx }}_{{ item_idx }}">Return Feed</a>
+              &nbsp;&nbsp;
+              {% set pocket_url = pocket.getPocketInfo(item.url, item.title) %}
+              {% if pocket_url %}<a href="{{ pocket_url }}">Send to Pocket</a>{% end %}
+              <div>{{ item.content }}</div>
+              <a href="#articleSignal_{{ feed_idx }}_{{ item_idx }}">Return Feed</a>
+              &nbsp;&nbsp;
+              {% if pocket_url %}<a href="{{ pocket_url }}">Send to Pocket</a>{% end %}
+              &nbsp;&nbsp;
+              {% if feed.item_count > 0 %}
+                {% set mark_read_url = read_marker.getMarkItemsReadURL(feed) %}
+                <a href="{{mark_read_url }}">Mark Above Items In Feed As Read</a>
+              {% end %}
             </div>
           {% end %}
-        </ol>
+        </div>
+      {% end %}
+    {% end %}
   </div>
-    {% end %}
-{% end %}
-</div>
-<mbp:pagebreak />
-<div id="content">
-{% set feed_idx=0 %}
-{% for feed in feeds %}
-{% set feed_idx=feed_idx+1 %}
-{% if feed.item_count > 0 %}
-<div id="section_{{ feed_idx }}" class="section">
-  {% set item_idx=0 %}
-  {% for item in feed.items %}
-    {% set item_idx=item_idx+1 %}
-    <div id="article_{{ feed_idx }}_{{ item_idx }}" class="article">
-    <h2 class="do_article_title">
-  {% if item.url %}
-    <a href="{{ item.url }}">{{ item.title }}</a>
-  {% else %}
-    {{ item.title }}
-  {% end %}
-</h2>
-{% if item.published %}{{ item.published }}{% end %}
-<a href="#articleSignal_{{ feed_idx }}_{{ item_idx }}">Return Feed</a>
-&nbsp;&nbsp;
-{% set pocket_url = pocket.getPocketInfo(item.url, item.title) %}
-{% if pocket_url %}<a href="{{ pocket_url }}">Send to Pocket</a>{% end %}
-<div>{{ item.content }}</div>
-  <a href="#articleSignal_{{ feed_idx }}_{{ item_idx }}">Return Feed</a>
-  &nbsp;&nbsp;
-{% if pocket_url %}<a href="{{ pocket_url }}">Send to Pocket</a>{% end %}
-</div>
-    {% end %}
-    </div>
-    {% end %}
-    {% end %}
-</div>
 </body>
 </html>
+
 """
 TEMPLATES['toc.ncx'] = """<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1" xml:lang="zh-CN">

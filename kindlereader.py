@@ -9,6 +9,8 @@ __author__ = "Jiedan<lxb429@gmail.com>"
 __version__ = "0.3.3"
 
 import sys
+reload(sys)  
+sys.setdefaultencoding('utf-8') 
 import os
 import time
 import hashlib
@@ -34,7 +36,7 @@ from librssreader.rssreader import RssReader
 from librssreader.auth import ClientAuthMethod
 from librssreader.items import Item
 from KVData import KVData
-from RelatedServices import PocketService, AESService
+from RelatedServices import PocketService, AESService, FeedReadMarker
 from ImageDownloader import ImageDownloadManager
 from kindletemplate import TEMPLATES
 
@@ -153,6 +155,8 @@ class KindleReader(object):
         if aes_secret:
             aes_service = AESService(aes_secret)
         pocket_service = PocketService(service_host, aes_service)
+        from librssreader.inoreaderconfig import ReaderBasicConfig
+        read_marker = FeedReadMarker(ReaderBasicConfig)
         logging.info("generate .mobi file start... ")
         data_dir = os.path.join(self.work_dir, 'data')
         if not os.path.exists(data_dir):
@@ -168,12 +172,14 @@ class KindleReader(object):
                 feeds=feeds,
                 uuid=uuid.uuid1(),
                 pocket=pocket_service,
+                read_marker=read_marker,
                 format=format
             )
 
             fp = open(os.path.join(data_dir, tpl), 'wb')
             content = content.decode('utf-8', 'ignore').encode('utf-8')
-            fp.write(content)
+            fp.write(escape.xhtml_unescape(content))
+            # fp.write(content)
             fp.close()
 
         pre_mobi_file = "TheOldReader_%s" % time.strftime('%m-%dT%Hh%Mm')
@@ -467,13 +473,3 @@ if __name__ == '__main__':
 
     logging.info("used time %.2fs" % (time.time()-st))
     logging.info("done.")
-    try:
-        if config.get('general', 'auto_exit').strip() in ['1', 1]:
-            auto_exit = True
-        else:
-            auto_exit = False
-    except:
-        auto_exit = False
-
-    if not auto_exit:
-        raw_input("Press any key to exit...")
