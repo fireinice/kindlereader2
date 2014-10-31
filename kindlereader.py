@@ -26,13 +26,15 @@ import getpass
 import subprocess
 import socket
 
-work_dir = os.path.dirname(sys.argv[0])
-sys.path.append(os.path.join(work_dir, 'lib'))
+import gflags
+from gflags import FLAGS
 from tornado import template
 from tornado import escape
 from BeautifulSoup import BeautifulSoup
-
 from librssreader.inoreader import RssReader, ClientAuthMethod, Item
+
+work_dir = os.path.dirname(sys.argv[0])
+sys.path.append(os.path.join(work_dir, 'lib'))
 from KVData import KVData
 from RelatedServices import PocketService, AESService, FeedReadMarker
 from ImageDownloader import ImageDownloadManager
@@ -438,9 +440,24 @@ class KindleReader(object):
             logging.info("no feed update.")
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO,
-        format='%(asctime)s:%(msecs)03d %(filename)s  %(lineno)03d %(levelname)-8s %(message)s',
-        datefmt='%m-%d %H:%M')
+    gflags.DEFINE_boolean('debug', False,
+                          'produces debugging output', short_name='d')
+    gflags.DEFINE_string('send_mail', '',
+                          '[mobi_path] just send a mobi already generated', short_name='m')
+    try:
+        FLAGS(sys.argv)  # parse flags
+    except gflags.FlagsError, e:
+        print '%s\nUsage: %s ARGS\n%s' % (e, sys.argv[0], FLAGS)
+        sys.exit(1)
+
+    if FLAGS.debug:
+        log_lvl = logging.DEBUG
+    else:
+        log_lvl = logging.INFO
+    logging.basicConfig(level=log_lvl,
+                        format='%(asctime)s:%(msecs)03d %(filename)s  %(lineno)03d %(levelname)-8s %(message)s',
+                        datefmt='%m-%d %H:%M')
+
     conf_file = os.path.join(work_dir, "config.ini")
 
     if os.path.isfile(conf_file) is False:
@@ -454,19 +471,23 @@ if __name__ == '__main__':
     except Exception, e:
         config.readfp(codecs.open(conf_file, "r", "utf-8"))
 
-    if not kindlegen:
-        logging.error("Can't find kindlegen")
-        sys.exit(1)
-
     st = time.time()
     logging.info("welcome, start ...")
     try:
         kr = KindleReader(work_dir=work_dir, config=config)
-        kr.main()
-    except Exception, e:
-        logging.info("Error: %s " % e)
+        if FLAGS.send_mail:
+            with open(FLAGS.send_mail, 'rb') as fp:
+                kr.sendmail(fp.read())
+                sys.exit(0)
+        else:
+            if not kindlegen:
+                logging.error("Can't find kindlegen")
+                sys.exit(1)
+            kr.main()
+    except Exception:
         import traceback
-        logging.info(traceback.format_exc(e))
+        logging.error(traceback.format_exc(e))
+        sys.exit(-1)
 
     logging.info("used time %.2fs" % (time.time()-st))
     logging.info("done.")
