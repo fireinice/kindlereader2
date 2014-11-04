@@ -37,7 +37,11 @@ class ImageDownloadManager():
         self.image_queue.join()
 
     @staticmethod
+<<<<<<< HEAD
     def parse_image(url, referer, output_dir):
+=======
+    def parse_image(self, url, referer, output_dir):
+>>>>>>> a103c2e428e92fc31e8b564dce230e59daa003f6
         """download image"""
         url = escape.utf8(url)
         image_guid = hashlib.sha1(url).hexdigest()
