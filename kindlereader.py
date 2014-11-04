@@ -13,8 +13,6 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 import os
 import time
-import hashlib
-import re
 import uuid
 import logging
 from email.mime.multipart import MIMEMultipart
@@ -231,58 +229,30 @@ class KindleReader(object):
                 self.is_url_blocked(img['src'])):
                 img.extract()
             else:
-                try:
-                    localimage, fullname = self.parse_image(img['src'], ref)
-                    if os.path.isfile(fullname) is False:
-                        images.append({
-                            'url':img['src'],
-                            'filename':fullname
-                        })
-
-                    if localimage:
-                        img['src'] = localimage
-                        img_count = img_count + 1
-                    else:
-                        img.extract()
-                except Exception, e:
-                    logging.info("error: %s" % e)
+                if len(img['src']) > 2048:
+                    logging.warning("img src is too long")
                     img.extract()
+                else:
+                    try:
+                        output_dir = os.path.join(self.work_dir, 'data')
+                        localimage, fullname = ImageDownloadManager.parse_image(
+                            img['src'], ref, output_dir)
+                        if os.path.isfile(fullname) is False:
+                            images.append({
+                                'url': img['src'],
+                                'filename': fullname
+                            })
+
+                        if localimage:
+                            img['src'] = localimage
+                            img_count = img_count + 1
+                        else:
+                            img.extract()
+                    except Exception, e:
+                        logging.info("error: %s" % e)
+                        img.extract()
 
         return soup.renderContents('utf-8'), images
-
-    def parse_image(self, url, referer=None, filename=None):
-        """download image"""
-        url = escape.utf8(url)
-        image_guid = hashlib.sha1(url).hexdigest()
-
-        x = url.split('.')
-        ext = 'jpg'
-        if len(x) > 1:
-            ext = x[-1]
-
-            if len(ext) > 4:
-                ext = ext[0:3]
-
-            ext = re.sub('[^a-zA-Z]','', ext)
-            ext = ext.lower()
-
-            if ext not in ['jpg', 'jpeg', 'gif','png','bmp']:
-                ext = 'jpg'
-
-        y = url.split('/')
-        h = hashlib.sha1(str(y[2])).hexdigest()
-
-        hash_dir = os.path.join(h[0:1], h[1:2])
-        filename = image_guid + '.' + ext
-
-        img_dir = os.path.join(self.work_dir, 'data', 'images', hash_dir)
-        fullname = os.path.join(img_dir, filename)
-
-        if not os.path.exists(img_dir):
-            os.makedirs(img_dir)
-
-        localimage = 'images/%s/%s' % (hash_dir, filename)
-        return localimage, fullname
 
     def main(self):
         username = self.get_config('reader', 'username')

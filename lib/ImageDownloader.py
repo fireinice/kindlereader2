@@ -1,24 +1,17 @@
 #!/usr/bin/env python
+import os
 import threading
 import Queue
 import urllib
+import hashlib
+import re
 import logging
+from tornado import escape
+
 try:
     from PIL import Image
 except ImportError:
     Image = None
-
-        # if downing_images:
-        #     for i in downing_images:
-        #         q.put(i)
-        #     threads = []
-        #     for i in range(self.thread_numbers):
-        #         t = ImageDownloader('Thread %s' % (i+1))
-        #         threads.append(t)
-        #     for t in threads:
-        #         t.setDaemon(True)
-        #         t.start()
-        #     q.join()
 
 
 class ImageDownloadManager():
@@ -42,6 +35,39 @@ class ImageDownloadManager():
             t.setDaemon(True)
             t.start()
         self.image_queue.join()
+
+    @staticmethod
+    def parse_image(self, url, referer, output_dir):
+        """download image"""
+        url = escape.utf8(url)
+        image_guid = hashlib.sha1(url).hexdigest()
+
+        x = url.split('.')
+        ext = 'jpg'
+        if len(x) > 1:
+            ext = x[-1]
+
+            if len(ext) > 4:
+                ext = ext[0:3]
+            ext = re.sub('[^a-zA-Z]', '',  ext)
+            ext = ext.lower()
+            if ext not in ['jpg', 'jpeg', 'gif', 'png', 'bmp']:
+                ext = 'jpg'
+
+        y = url.split('/')
+        h = hashlib.sha1(str(y[2])).hexdigest()
+
+        hash_dir = os.path.join(h[0:1], h[1:2])
+        filename = image_guid + '.' + ext
+
+        img_dir = os.path.join(output_dir, 'images', hash_dir)
+        fullname = os.path.join(img_dir, filename)
+
+        if not os.path.exists(img_dir):
+            os.makedirs(img_dir)
+
+        localimage = 'images/%s/%s' % (hash_dir, filename)
+        return localimage, fullname
 
 
 class ImageDownloader(threading.Thread):
