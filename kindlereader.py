@@ -15,9 +15,6 @@ import os
 import time
 import uuid
 import logging
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import smtplib
 import codecs
 import ConfigParser
 import getpass
@@ -37,8 +34,8 @@ from KVData import KVData
 from RelatedServices import PocketService, AESService, FeedReadMarker
 from ImageDownloader import ImageDownloadManager
 from kindletemplate import TEMPLATES
+from Tools import Tools
 
-# logging.basicConfig(level=logging.DEBUG)
 socket.setdefaulttimeout(20)
 
 
@@ -61,7 +58,6 @@ kindlegen = find_kindlegen_prog()
 
 class KindleReader(object):
     """docstring for KindleReader"""
-    global q
     work_dir = None
     config = None
     template_dir = None
@@ -95,55 +91,6 @@ class KindleReader(object):
             return self.config.get(section, name).strip()
         except:
             return None
-
-    def sendmail(self, data):
-        """send html to kindle"""
-        mail_host = self.get_config('mail', 'host')
-        mail_port = self.get_config('mail', 'port')
-        mail_ssl = self.config.getint('mail', 'ssl')
-        mail_from = self.get_config('mail', 'from')
-        mail_to = self.get_config('mail', 'to')
-        mail_username = self.get_config('mail', 'username')
-        mail_password = self.get_config('mail', 'password')
-        if not mail_from:
-            raise Exception("'mail from' is empty")
-        if not mail_to:
-            raise Exception("'mail to' is empty")
-        if not mail_host:
-            raise Exception("'mail host' is empty")
-        if not mail_port:
-            mail_port = 25
-        logging.info("send mail to %s ... " % mail_to)
-        msg = MIMEMultipart()
-        msg['from'] = mail_from
-        msg['to'] = mail_to
-        msg['subject'] = 'Convert'
-
-        htmlText = 'google reader delivery.'
-        msg.preamble = htmlText
-
-        msgText = MIMEText(htmlText, 'html', 'utf-8')
-        msg.attach(msgText)
-
-        att = MIMEText(data, 'base64', 'utf-8')
-        att["Content-Type"] = 'application/octet-stream'
-        att["Content-Disposition"] = 'attachment; filename="google-reader-%s.mobi"' % time.strftime('%H-%M-%S')
-        msg.attach(att)
-
-        try:
-            mail = smtplib.SMTP(timeout=60)
-            mail.connect(mail_host, int(mail_port))
-            mail.ehlo()
-            if mail_ssl:
-                mail.starttls()
-                mail.ehlo()
-            if mail_username and mail_password:
-                mail.login(mail_username, mail_password)
-
-            mail.sendmail(msg['from'], msg['to'], msg.as_string())
-            mail.close()
-        except Exception, e:
-            logging.error("fail:%s" % e)
 
     def make_mobi(self, user, feeds, format='book'):
         """docstring for make_mobi"""
@@ -403,9 +350,7 @@ class KindleReader(object):
             mobi_file = self.make_mobi(user, updated_feeds, kindle_format)
 
             if mobi_file and mail_enable == '1':
-                fp = open(mobi_file, 'rb')
-                self.sendmail(fp.read())
-                fp.close()
+                Tools.mail_magzine(mobi_file, self.config)
         else:
             logging.info("no feed update.")
 
@@ -430,25 +375,21 @@ if __name__ == '__main__':
 
     conf_file = os.path.join(work_dir, "config.ini")
 
-    if os.path.isfile(conf_file) is False:
+    if not os.path.isfile(conf_file):
         logging.error("config file '%s' not found" % conf_file)
         sys.exit(1)
 
-    config = ConfigParser.ConfigParser()
+    config = ConfigParser.SafeConfigParser()
 
-    try:
-        config.readfp(codecs.open(conf_file, "r", "utf-8-sig"))
-    except Exception, e:
-        config.readfp(codecs.open(conf_file, "r", "utf-8"))
+    config.read(conf_file)
 
     st = time.time()
     logging.info("welcome, start ...")
     try:
         kr = KindleReader(work_dir=work_dir, config=config)
         if FLAGS.send_mail:
-            with open(FLAGS.send_mail, 'rb') as fp:
-                kr.sendmail(fp.read())
-                sys.exit(0)
+            Tools.mail_magzine(FLAGS.send_mail, config)
+            sys.exit(0)
         else:
             if not kindlegen:
                 logging.error("Can't find kindlegen")
@@ -456,7 +397,7 @@ if __name__ == '__main__':
             kr.main()
     except Exception:
         import traceback
-        logging.error(traceback.format_exc(e))
+        logging.error(traceback.format_exc())
         sys.exit(-1)
 
     logging.info("used time %.2fs" % (time.time()-st))

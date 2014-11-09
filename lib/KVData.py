@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*- #
 #// -*- mode:Python; tab-width:4; py-basic-offset:4; indent-tabs-mode:nil -*-
 #/*************************************************************************
-# * Copyright (c) 2014 Ganji.com, Inc. All Rights Reserved
-# * $Id: KVData.py,v 0.0 2014/08/25 10:44:42 zhangzhiqiang Exp $
+# * $Id: KVData.py,v 0.0 2014/08/25 10:44:42 Zigler Zhang Exp $
 # *************************************************************************/
 #/**
 # * \file		KVData.py
@@ -11,7 +10,7 @@
 # *
 # *
 # *
-# * \author		ZhangZhiqiang(zhangzhiqiang@ganji.com)
+# * \author		Zigler Zhang(zigler.zhang@gmail.com)
 # * \bug		No known bugs.
 # *
 # * $Date: 2014/08/25 10:44:57 $
