@@ -64,11 +64,12 @@ if __name__ == '__main__':
 
     pocket_service = None
     read_marker = None
-    if not service_host:
+    if service_host:
         read_marker = FeedReadMarker(service_host)
         if aes_secret:
             aes_service = AESService(aes_secret)
             pocket_service = PocketService(service_host, aes_service)
+
     data_dir = os.path.join(work_dir, 'data')
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
@@ -89,8 +90,8 @@ if __name__ == '__main__':
                                      updated_feeds,
                                      data_dir,
                                      magzine_format,
-                                     pocket_service,
-                                     read_marker)
+                                     pocket_service=pocket_service,
+                                     read_marker=read_marker)
         if mobi_file and mail_enable:
             Tools.mail_magzine(mobi_file, config)
 

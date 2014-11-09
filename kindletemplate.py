@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 TEMPLATES = {}
-TEMPLATES['content.html'] = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+TEMPLATES['content.html'] = """
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -121,28 +123,30 @@ page-break-after: always;
             {% set item_idx=item_idx+1 %}
             <div id="article_{{ feed_idx }}_{{ item_idx }}" class="article">
               <h2 class="do_article_title">
-                {% if item.url %}
-                  <a href="{{ item.url }}">{{ item.title }}</a>
-                {% else %}
                   {{ item.title }}
-                {% end %}
               </h2>
-              {% if item.published %}{{ item.published }}{% end %}
+              {% if item.published %}
+                {{ item.published }}
+                <br />
+              {% end %}
+              {% if item.url %}
+                <a href="{{ item.url }}">Open In Browser</a>
+                &nbsp;◆&nbsp;
+              {% end %}
               <a href="#articleSignal_{{ feed_idx }}_{{ item_idx }}">Return Feed</a>
-              &nbsp;&nbsp;
+              &nbsp;◆&nbsp;
               {% if pocket %}
                 {% set pocket_url = pocket.getPocketInfo(item.url, item.title) %}
                 <a href="{{ pocket_url }}">Send to Pocket</a>
               {% end %}
               <div>{{ item.content }}</div>
               <a href="#articleSignal_{{ feed_idx }}_{{ item_idx }}">Return Feed</a>
-              &nbsp;&nbsp;
+              &nbsp;◆&nbsp;
               {% if pocket %}
                 {% set pocket_url = pocket.getPocketInfo(item.url, item.title) %}
                 <a href="{{ pocket_url }}">Send to Pocket</a>
               {% end %}
-              &nbsp;&nbsp;
-              {% if feed.item_count == item_idx %}
+              {% if feed.item_count == item_idx and read_marker is not None %}
                 {% set mark_read_url = read_marker.getMarkItemsReadURL(feed) %}
                 <a href="{{mark_read_url }}">Mark Above Items In Feed As Read</a>
               {% end %}
@@ -199,7 +203,7 @@ TEMPLATES['toc.ncx'] = """<?xml version="1.0" encoding="UTF-8"?>
 {% set feed_idx=feed_idx+1 %}
 {% if feed.item_count > 0 %}
 {% set item_idx=0 %}
-{% for item in feed.item_count %}
+{% for item in feed.items %}
   {% set item_idx=item_idx+1 %}
     <navPoint class="chapter" id="{{ feed_idx }}_{{ item_idx }}" playOrder="{{ item_idx }}">
 <navLabel><text>{{ escape(item.title) }}</text></navLabel>

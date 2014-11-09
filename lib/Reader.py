@@ -281,7 +281,7 @@ class Kindle(object):
 
     @staticmethod
     def make_mobi(user, feeds, data_dir, kindle_format='book',
-                  pocket_service=None, read_marker=None):
+                  **other_services):
         """docstring for make_mobi"""
         is_updated = False
         for feed in feeds:
@@ -304,8 +304,8 @@ class Kindle(object):
                 user=user,
                 feeds=feeds,
                 uuid=uuid.uuid1(),
-                pocket=pocket_service,
-                read_marker=read_marker,
+                pocket=other_services['pocket_service'],
+                read_marker=other_services['read_marker'],
                 format=kindle_format
             )
 
