@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     config.read(conf_file)
     mail_enable = config.getboolean('general', 'mail_enable')
-    magzine_format = config.get('general', 'output_format')
+    magzine_format = config.get('general', 'kindle_format')
 
     service_host = config.get('third_party', 'service_host')
     aes_secret = config.get('third_party', 'aes_service_secret')

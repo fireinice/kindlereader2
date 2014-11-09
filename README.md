@@ -17,6 +17,7 @@ Licensed under the MIT license: [http://www.opensource.org/licenses/mit-license.
 * python(2.7 recommanded)
 * pip
 * librssreader
+* python-gflags
 * tornado
 * BeautifulSoup
 * python-gflags
