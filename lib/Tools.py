@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*- #
-#// -*- mode:Python; tab-width:4; py-basic-offset:4; indent-tabs-mode:nil -*-
-#/*************************************************************************
-# * $Id: Tools.py,v 0.0 2014/11/08 18:59:57 Zigler Zhang Exp $ 
+# // -*- mode:Python; tab-width:4; py-basic-offset:4; indent-tabs-mode:nil -*-
+# /*************************************************************************
+# * $Id: Tools.py,v 0.0 2014/11/08 18:59:57 Zigler Zhang Exp $
 # *************************************************************************/
-#/**
+# /**
 # * \file		Tools.py
 # * \brief		some tools for kindlereader
 # *
-# * 
+# *
 # *
 # * \author		Zigler Zhang(zigler.zhang.com)
 # * \bug		No known bugs.

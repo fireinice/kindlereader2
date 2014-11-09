@@ -90,5 +90,4 @@ class ImageDownloader(threading.Thread):
                 logging.info("download: %s" % i['url'])
             except Exception, e:
                 logging.error("Failed: %s" % e)
-                # q.put(i)
             self.images.task_done()

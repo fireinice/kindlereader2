@@ -130,12 +130,17 @@ page-break-after: always;
               {% if item.published %}{{ item.published }}{% end %}
               <a href="#articleSignal_{{ feed_idx }}_{{ item_idx }}">Return Feed</a>
               &nbsp;&nbsp;
-              {% set pocket_url = pocket.getPocketInfo(item.url, item.title) %}
-              {% if pocket_url %}<a href="{{ pocket_url }}">Send to Pocket</a>{% end %}
+              {% if pocket %}
+                {% set pocket_url = pocket.getPocketInfo(item.url, item.title) %}
+                <a href="{{ pocket_url }}">Send to Pocket</a>
+              {% end %}
               <div>{{ item.content }}</div>
               <a href="#articleSignal_{{ feed_idx }}_{{ item_idx }}">Return Feed</a>
               &nbsp;&nbsp;
-              {% if pocket_url %}<a href="{{ pocket_url }}">Send to Pocket</a>{% end %}
+              {% if pocket %}
+                {% set pocket_url = pocket.getPocketInfo(item.url, item.title) %}
+                <a href="{{ pocket_url }}">Send to Pocket</a>
+              {% end %}
               &nbsp;&nbsp;
               {% if feed.item_count == item_idx %}
                 {% set mark_read_url = read_marker.getMarkItemsReadURL(feed) %}
