@@ -82,8 +82,10 @@ class ImageDownloader(threading.Thread):
                 urllib.urlretrieve(i['url'], i['filename'])
                 if Image:
                     try:
+                        size = 768, 1024
                         img = Image.open(i['filename'])
                         new_img = img.convert("L")
+                        new_img.thumbnail(size, Image.ANTIALIAS)
                         new_img.save(i['filename'])
                     except:
                         pass

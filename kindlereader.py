@@ -30,7 +30,9 @@ from RelatedServices import PocketService, AESService, FeedReadMarker
 if __name__ == '__main__':
     gflags.DEFINE_boolean('debug', False,
                           'produces debugging output', short_name='d')
-    gflags.DEFINE_string('send_mail', '',
+    gflags.DEFINE_boolean('mail', True, 
+                          'send mail after generate mobi file')
+    gflags.DEFINE_string('only_mail', '',
                          '[mobi_path] just send a mobi already generated',
                          short_name='m')
     try:
@@ -80,7 +82,7 @@ if __name__ == '__main__':
     st = time.time()
     logging.info("welcome, start ...")
     try:
-        if FLAGS.send_mail:
+        if FLAGS.only_mail:
             Tools.mail_magzine(FLAGS.send_mail, config)
             sys.exit(0)
 
@@ -92,7 +94,7 @@ if __name__ == '__main__':
                                      magzine_format,
                                      pocket_service=pocket_service,
                                      read_marker=read_marker)
-        if mobi_file and mail_enable:
+        if mobi_file and mail_enable and FLAGS.mail:
             Tools.mail_magzine(mobi_file, config)
 
     except Exception:
