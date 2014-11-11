@@ -25,13 +25,16 @@ sys.path.append(os.path.join(work_dir, 'lib'))
 from Tools import Tools
 from Reader import Reader, Kindle
 from RelatedServices import PocketService, AESService, FeedReadMarker
+from KVData import KVData
 
 
 if __name__ == '__main__':
     gflags.DEFINE_boolean('debug', False,
                           'produces debugging output', short_name='d')
-    gflags.DEFINE_boolean('mail', True, 
+    gflags.DEFINE_boolean('mail', True,
                           'send mail after generate mobi file')
+    gflags.DEFINE_boolean('since_time', True,
+                          'only update items after this time')
     gflags.DEFINE_string('only_mail', '',
                          '[mobi_path] just send a mobi already generated',
                          short_name='m')
@@ -80,14 +83,20 @@ if __name__ == '__main__':
         logging.error("do not find kindle book generator, exit...")
 
     st = time.time()
+    since_time = None
+    kv_data = KVData(os.path.join(data_dir, 'kv'))
+    if FLAGS.since_time:
+        since_time = kv_data.get('start_time')
     logging.info("welcome, start ...")
     try:
         if FLAGS.only_mail:
             Tools.mail_magzine(FLAGS.send_mail, config)
             sys.exit(0)
 
-        reader = Reader(work_dir=work_dir, config=config)
-        updated_feeds = reader.check_feeds_update()
+        reader = Reader(output_dir=data_dir, config=config)
+
+        updated_feeds = reader.check_feeds_update(since_time)
+
         mobi_file = Kindle.make_mobi(reader.user_info,
                                      updated_feeds,
                                      data_dir,
@@ -102,5 +111,7 @@ if __name__ == '__main__':
         logging.error(traceback.format_exc())
         sys.exit(-1)
 
+    kv_data.set('start_time', int(time.time()))
+    kv_data.save()
     logging.info("used time %.2fs" % (time.time()-st))
     logging.info("done.")

@@ -17,7 +17,6 @@
 # * $Revision: 1.0 $
 # */
 import os
-import sys
 import time
 import uuid
 import getpass
@@ -29,14 +28,13 @@ from tornado import escape
 from BeautifulSoup import BeautifulSoup
 from librssreader.inoreader import RssReader, ClientAuthMethod, Item
 
-from KVData import KVData
 from ImageDownloader import ImageDownloadManager
 from kindletemplate import TEMPLATES
 
 
 class Reader(object):
     """docstring for KindleReader"""
-    work_dir = None
+    output_dir = None
     config = None
     template_dir = None
     password = None
@@ -45,11 +43,8 @@ class Reader(object):
     max_image_number = 0
     user_agent = "kindlereader"
 
-    def __init__(self, work_dir=None, config=None, template_dir=None):
-        if work_dir:
-            self.work_dir = work_dir
-        else:
-            self.work_dir = os.path.dirname(sys.argv[0])
+    def __init__(self, output_dir, config=None, template_dir=None):
+        self.output_dir = output_dir
 
         self.config = config
 
@@ -108,7 +103,7 @@ class Reader(object):
         images = []
         for img in list(soup.findAll('img')):
             if ((self.max_image_number >= 0 and
-                 img_count >= self.max_image_number) or
+                img_count >= self.max_image_number) or
                 img.has_key('src') is False or
                 self.is_url_blocked(img['src'])):
                 img.extract()
@@ -118,7 +113,7 @@ class Reader(object):
                     img.extract()
                 else:
                     try:
-                        output_dir = os.path.join(self.work_dir, 'data')
+                        output_dir = self.output_dir
                         localimage, fullname = ImageDownloadManager.parse_image(
                             img['src'], ref, output_dir)
                         if os.path.isfile(fullname) is False:
@@ -138,54 +133,49 @@ class Reader(object):
 
         return soup.renderContents('utf-8'), images
 
-    def check_feeds_update(self):
-        self.reader.buildSubscriptionList()
-        categoires = self.reader.getCategories()
+    def get_valid_feeds(self, categories):
         select_categories = self.get_config('reader', 'select_categories')
         skip_categories = self.get_config('reader', 'skip_categories')
 
         selects = []
         if select_categories:
-            select_categories = select_categories.split(',')
-
-            for c in select_categories:
-                if c:
-                    selects.append(c.encode('utf-8').strip())
-            select_categories = None
+            selects = [x.encode('utf-8').strip()
+                       for x in select_categories.split(',')]
 
         skips = []
         if not selects and skip_categories:
-            skip_categories = skip_categories.split(',')
-
-            for c in skip_categories:
-                if c:
-                    skips.append(c.encode('utf-8').strip())
-            skip_categories = None
+            skips = [x.encode('utf-8').strip()
+                     for x in skip_categories.split(',')]
 
         feeds = {}
-        for category in categoires:
+        for category in categories:
             skiped = False
             if selects:
-                if category.label.encode("utf-8") in selects:
-                    fd = category.getFeeds()
-                    for f in fd:
-                        if f.id not in feeds:
-                            feeds[f.id] = f
-                    fd = None
-                else:
+                if category.label.encode("utf-8") not in selects:
                     skiped = True
-
             else:
-                if category.label.encode("utf-8") not in skips:
-                    fd = category.getFeeds()
-                    for f in fd:
-                        if f.id not in feeds:
-                            feeds[f.id] = f
-                    fd = None
-                else:
+                if category.label.encode("utf-8") in skips:
                     skiped = True
             if skiped:
                 logging.info('skip category: %s' % category.label)
+            else:
+                fd = category.getFeeds()
+                for f in fd:
+                    if f.id not in feeds:
+                        feeds[f.id] = f
+                fd = None
+        return feeds
+
+    def is_item_in_reading_list(self, item):
+        for category in item.get('categories', []):
+            if category.endswith('/state/com.google/reading-list'):
+                return True
+        return False
+
+    def check_feeds_update(self, since=None):
+        self.reader.buildSubscriptionList()
+        categories = self.reader.getCategories()
+        feeds = self.get_valid_feeds(categories)
 
         max_items_number = self.config.getint('reader', 'max_items_number')
         mark_read = self.config.getint('reader', 'mark_read')
@@ -203,45 +193,42 @@ class Reader(object):
             max_items_number = 50
 
         feed_idx = 0
-
-        feed_num, current_feed = len(feeds), 0
         updated_feeds = []
-        downing_images = []
-        kv_data = KVData('data/kv')
+        current_feed = 0
+        image_download_manager = ImageDownloadManager()
         for feed_id in feeds:
             feed = feeds[feed_id]
 
             current_feed = current_feed + 1
-            logging.info("[%s/%s]: %s" % (current_feed, feed_num, feed.id))
+            logging.info("[%s/%s]: %s" % (current_feed, len(feeds), feed.id))
             try:
                 feed_data = self.reader.getFeedContent(
                     feed, exclude_read, loadLimit=max_items_number,
-                    since=kv_data.get('start_time'))
+                    since=since)
 
                 if not feed_data:
                     continue
 
-                item_idx = 1
+                item_idx = 0
                 for item in feed_data['items']:
-                    for category in item.get('categories', []):
-                        if category.endswith('/state/com.google/reading-list'):
-                            content = item.get('content',
-                                               item.get(
-                                                   'summary', {})).get(
-                                                       'content', '')
-                            url = None
-                            for alternate in item.get('alternate', []):
-                                if alternate.get('type', '') == 'text/html':
-                                    url = alternate['href']
-                                    break
-                            if content:
-                                item['content'], images = self.parse_summary(
-                                    content, url)
-                                item['idx'] = item_idx
-                                item = Item(self.reader, item, feed)
-                                item_idx += 1
-                                downing_images += images
-                            break
+                    if self.is_item_in_reading_list(item):
+                        content = item.get('content',
+                                           item.get(
+                                                'summary', {})).get(
+                                                    'content', '')
+                        url = None
+                        for alternate in item.get('alternate', []):
+                            if alternate.get('type', '') == 'text/html':
+                                url = alternate['href']
+                                break
+                        if content:
+                            item['content'], images = self.parse_summary(
+                                content, url)
+                            item_idx += 1
+                            item['idx'] = item_idx
+                            item = Item(self.reader, item, feed)
+                            image_download_manager.add_images(images)
+
                 feed.item_count = len(feed.items)
                 if mark_read:
                     if feed.item_count >= max_items_number:
@@ -260,11 +247,8 @@ class Reader(object):
             except Exception:
                 import traceback
                 logging.error("fail: %s" % traceback.format_exc())
-        kv_data.set('start_time', int(time.time()))
-        kv_data.save()
 
         # download image by multithreading
-        image_download_manager = ImageDownloadManager(downing_images)
         image_download_manager.run()
         return updated_feeds
 
@@ -304,9 +288,8 @@ class Kindle(object):
                 user=user,
                 feeds=feeds,
                 uuid=uuid.uuid1(),
-                pocket=other_services['pocket_service'],
-                read_marker=other_services['read_marker'],
-                format=kindle_format
+                format=kindle_format,
+                **other_services
             )
 
             fp = open(os.path.join(data_dir, tpl), 'wb')

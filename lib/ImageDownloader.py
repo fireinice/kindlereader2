@@ -15,11 +15,12 @@ except ImportError:
 
 
 class ImageDownloadManager():
-    def __init__(self, images, threads_num=5):
+    def __init__(self, images=[], threads_num=5):
         self.image_queue = Queue.Queue(0)
-        if not images:
-            return
         self.threads_num = threads_num
+        self.add_images(images)
+
+    def add_images(self, images):
         for i in images:
             self.image_queue.put(i)
 
