@@ -22,11 +22,14 @@ Licensed under the MIT license: [http://www.opensource.org/licenses/mit-license.
 * BeautifulSoup
 * python-gflags
 * kindlegen
+* Pillow (Optional)
 
 ### Setup
 _By now ALL feature are only tested on Linux environment_.
 
         $ pip install tornado
+
+        $ pip install Pillow
 
 	$ pip install BeautifulSoup
 
