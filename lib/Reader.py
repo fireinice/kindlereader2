@@ -84,10 +84,10 @@ class Reader(object):
         else:
             return False
 
-    def parse_summary(self, summary, ref):
+    def parse_content(self, content, ref):
         """处理文章"""
 
-        soup = BeautifulSoup(summary)
+        soup = BeautifulSoup(content)
 
         for span in list(soup.findAll(attrs={"style": "display: none;"})):
             span.extract()
@@ -172,7 +172,7 @@ class Reader(object):
                 return True
         return False
 
-    def check_feeds_update(self, since=None):
+    def check_feeds_update(self, since=None, reorder=False):
         self.reader.buildSubscriptionList()
         categories = self.reader.getCategories()
         feeds = self.get_valid_feeds(categories)
@@ -192,7 +192,6 @@ class Reader(object):
         if not max_items_number:
             max_items_number = 50
 
-        feed_idx = 0
         updated_feeds = []
         current_feed = 0
         image_download_manager = ImageDownloadManager()
@@ -209,25 +208,26 @@ class Reader(object):
                 if not feed_data:
                     continue
 
-                item_idx = 0
                 for item in feed_data['items']:
-                    if self.is_item_in_reading_list(item):
-                        content = item.get('content',
-                                           item.get(
-                                                'summary', {})).get(
-                                                    'content', '')
-                        url = None
-                        for alternate in item.get('alternate', []):
-                            if alternate.get('type', '') == 'text/html':
-                                url = alternate['href']
-                                break
-                        if content:
-                            item['content'], images = self.parse_summary(
-                                content, url)
-                            item_idx += 1
-                            item['idx'] = item_idx
-                            item = Item(self.reader, item, feed)
-                            image_download_manager.add_images(images)
+                    if not self.is_item_in_reading_list(item):
+                        continue
+
+                    content = item.get('content', '')
+                    if not content:
+                        content = item.get('summary', {}).get(
+                            'content', '')
+                    if not content:
+                        continue
+
+                    url = None
+                    for alternate in item.get('alternate', []):
+                        if alternate.get('type', '') == 'text/html':
+                            url = alternate['href']
+                            break
+                    item['content'], images = self.parse_content(
+                        content, url)
+                    item = Item(self.reader, item, feed)
+                    image_download_manager.add_images(images)
 
                 feed.item_count = len(feed.items)
                 if mark_read:
@@ -238,8 +238,8 @@ class Reader(object):
                         self.reader.markFeedAsRead(feed)
 
                 if feed.item_count > 0:
-                    feed_idx += 1
-                    feed.idx = feed_idx
+                    if reorder:
+                        feed.items.sort(key=lambda item: item.published)
                     updated_feeds.append(feed)
                     logging.info("update %s items." % feed.item_count)
                 else:

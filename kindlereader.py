@@ -35,6 +35,8 @@ if __name__ == '__main__':
                           'send mail after generate mobi file')
     gflags.DEFINE_boolean('since_time', True,
                           'only update items after this time')
+    gflags.DEFINE_boolean('make_mobi', True,
+                          'generate mobi magzine')
     gflags.DEFINE_string('only_mail', '',
                          '[mobi_path] just send a mobi already generated',
                          short_name='m')
@@ -63,6 +65,7 @@ if __name__ == '__main__':
     config.read(conf_file)
     mail_enable = config.getboolean('general', 'mail_enable')
     magzine_format = config.get('general', 'kindle_format')
+    reorder = config.getboolean('reader', 'time_order')
 
     service_host = config.get('third_party', 'service_host')
     aes_secret = config.get('third_party', 'aes_service_secret')
@@ -95,16 +98,18 @@ if __name__ == '__main__':
 
         reader = Reader(output_dir=data_dir, config=config)
 
-        updated_feeds = reader.check_feeds_update(since_time)
+        updated_feeds = reader.check_feeds_update(since_time, reorder)
 
-        mobi_file = Kindle.make_mobi(reader.user_info,
-                                     updated_feeds,
-                                     data_dir,
-                                     magzine_format,
-                                     pocket_service=pocket_service,
-                                     read_marker=read_marker)
-        if mobi_file and mail_enable and FLAGS.mail:
-            Tools.mail_magzine(mobi_file, config)
+        if FLAGS.make_mobi:
+            mobi_file = Kindle.make_mobi(reader.user_info,
+                                         updated_feeds,
+                                         data_dir,
+                                         magzine_format,
+                                         pocket_service=pocket_service,
+                                         read_marker=read_marker)
+
+            if mobi_file and mail_enable and FLAGS.mail:
+                Tools.mail_magzine(mobi_file, config)
 
     except Exception:
         import traceback
