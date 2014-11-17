@@ -121,6 +121,7 @@ page-break-after: always;
           {% set item_idx=0 %}
           {% for item in feed.items %}
             {% set item_idx=item_idx+1 %}
+            <mbp:section>
             <div id="article_{{ feed_idx }}_{{ item_idx }}" class="article">
               <h2 class="do_article_title">
                   {{ item.title }}
@@ -148,10 +149,12 @@ page-break-after: always;
               {% end %}
               {% if feed.item_count == item_idx and read_marker is not None %}
                 {% set mark_read_url = read_marker.getMarkItemsReadURL(feed) %}
-				&nbsp;&#8226;&nbsp;
+                &nbsp;&#8226;&nbsp;
                 <a href="{{mark_read_url }}">Mark Above Items In Feed As Read</a>
               {% end %}
             </div>
+            </mbp:section>
+            <mbp:pagebreak/>
           {% end %}
         </div>
       {% end %}
@@ -223,7 +226,7 @@ TEMPLATES['content.opf'] = """<?xml version="1.0" encoding="utf-8"?>
 <metadata>
 <dc-metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
 {% if format == 'periodical' %}
-<dc:title>{{ user['userName'] }}'s Daily Digest</dc:title>
+<dc:title>{{ user['userName'] }}'s Daily Digest({{ datetime.datetime.utcnow().strftime("%m/%d %H:%M") }})</dc:title>
 {% else %}
 <dc:title>{{ user['userName'] }}'s Daily Digest({{ datetime.datetime.utcnow().strftime("%m/%d %H:%M") }})</dc:title>
 {% end %}
