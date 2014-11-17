@@ -93,7 +93,7 @@ if __name__ == '__main__':
     logging.info("welcome, start ...")
     try:
         if FLAGS.only_mail:
-            Tools.mail_magzine(FLAGS.send_mail, config)
+            Tools.mail_magzine(FLAGS.only_mail, config)
             sys.exit(0)
 
         reader = Reader(output_dir=data_dir, config=config)
