@@ -23,6 +23,7 @@ Licensed under the MIT license: [http://www.opensource.org/licenses/mit-license.
 * python-gflags
 * kindlegen
 * pycrypt
+* pytz
 * Pillow (Optional)
 
 ### Setup
@@ -31,6 +32,8 @@ _By now ALL feature are only tested on Linux environment_.
         $ pip install tornado
 
         $ pip install pycrypt
+
+        $ pip install pytz
 
         $ pip install Pillow
 

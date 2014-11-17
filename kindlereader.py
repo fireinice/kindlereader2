@@ -16,6 +16,7 @@ import time
 import socket
 import logging
 import ConfigParser
+import pytz
 
 import gflags
 from gflags import FLAGS
@@ -65,6 +66,8 @@ if __name__ == '__main__':
     config.read(conf_file)
     mail_enable = config.getboolean('general', 'mail_enable')
     magzine_format = config.get('general', 'kindle_format')
+    tz = pytz.timezone(config.get('general', 'timezone'))
+
     reorder = config.getboolean('reader', 'time_order')
 
     service_host = config.get('third_party', 'service_host')
@@ -105,8 +108,10 @@ if __name__ == '__main__':
                                          updated_feeds,
                                          data_dir,
                                          magzine_format,
+                                         timezone=tz,
                                          pocket_service=pocket_service,
-                                         read_marker=read_marker)
+                                         read_marker=read_marker,
+                                         )
 
             if mobi_file and mail_enable and FLAGS.mail:
                 Tools.mail_magzine(mobi_file, config)

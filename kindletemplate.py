@@ -59,7 +59,7 @@ page-break-after: always;
   <div id="cover">
     <h1 id="title">{{ user['userName'] }}'s Daily Digest</h1>
     <a href="#content">Go straight to first item</a><br />
-    {{ datetime.datetime.utcnow().strftime("%m/%d %H:%M") }}
+    {{ datetime.datetime.now(timezone).strftime("%m/%d %H:%M") }}
   </div>
   <div id="toc">
     <h2>Feeds:</h2>
@@ -73,7 +73,7 @@ page-break-after: always;
           <li>
             <a href="#sectionlist_{{ feed_idx }}">{{ feed.title }}</a>
             <br />
-            {{ feed_count > 0 }} items
+            {{ feed.item_count }} items
           </li>
         {% end %}
       {% end %}
@@ -140,7 +140,9 @@ page-break-after: always;
                 {% set pocket_url = pocket_service.getPocketInfo(item.url, item.title) %}
                 <a href="{{ pocket_url }}">Send to Pocket</a>
               {% end %}
+              <hr/>
               <div>{{ item.content }}</div>
+              <br/>
               <a href="#articleSignal_{{ feed_idx }}_{{ item_idx }}">Return Feed</a>
               &nbsp;&#8226;&nbsp;
               {% if pocket_service %}
@@ -154,7 +156,6 @@ page-break-after: always;
               {% end %}
             </div>
             </mbp:section>
-            <mbp:pagebreak/>
           {% end %}
         </div>
       {% end %}
@@ -166,59 +167,49 @@ page-break-after: always;
 """
 TEMPLATES['toc.ncx'] = """<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1" xml:lang="zh-CN">
-<head>
-<meta name="dtb:depth" content="4" />
-<meta name="dtb:totalPageCount" content="0" />
-<meta name="dtb:maxPageNumber" content="0" />
-</head>
-<docTitle><text>{{ user['userName'] }}'s Daily Digest</text></docTitle>
-<docAuthor><text>{{ user['userName'] }}</text></docAuthor>
-<navMap>
-{% if format == 'periodical' %}
-<navPoint class="periodical">
-<navLabel><text>{{ user['userName'] }}'s Daily Digest</text></navLabel>
-<content src="content.html" />
-{% set feed_idx=0 %}
-{% for feed in feeds %}
-{% set feed_idx=feed_idx+1 %}
-{% if feed.item_count > 0 %}
-<navPoint class="section" id="{{ feed_idx }}">
-<navLabel><text>{{ escape(feed.title) }}</text></navLabel>
-<content src="content.html#section_{{ feed_idx }}" />
-    {% set item_idx=0 %}
-    {% for item in feed.items %}
-      {% set item_idx=item_idx+1 %}
-      <navPoint class="article" id="{{ feed_idx }}_{{ item_idx }}" playOrder="{{ item_idx }}">
-        <navLabel><text>{{ escape(item.title) }}</text></navLabel>
-        <content src="content.html#article_{{ feed_idx }}_{{ item_idx }}" />
-        {% if item.author %}<mbp:meta name="author">{{ item.author }}</mbp:meta> {% end %}
-      </navPoint>
-    {% end %}
-</navPoint>
-{% end %}
-{% end %}
-</navPoint>
-{% else %}
-<navPoint class="book">
-<navLabel><text>{{ user['userName'] }}'s Daily Digest</text></navLabel>
-<content src="content.html" />
-{% set feed_idx=0 %}
-{% for feed in feeds %}
-{% set feed_idx=feed_idx+1 %}
-{% if feed.item_count > 0 %}
-{% set item_idx=0 %}
-{% for item in feed.items %}
-  {% set item_idx=item_idx+1 %}
-    <navPoint class="chapter" id="{{ feed_idx }}_{{ item_idx }}" playOrder="{{ item_idx }}">
-<navLabel><text>{{ escape(item.title) }}</text></navLabel>
-<content src="content.html#article_{{ feed_idx }}_{{ item_idx }}" />
-</navPoint>
-{% end %}
-{% end %}
-{% end %}
-</navPoint>
-{% end %}
-</navMap>
+    <head>
+    <meta name="dtb:depth" content="4" />
+    <meta name="dtb:totalPageCount" content="0" />
+    <meta name="dtb:maxPageNumber" content="0" />
+    </head>
+    <docTitle><text>{{ user['userName'] }}'s Daily Digest</text></docTitle>
+    <docAuthor><text>{{ user['userName'] }}</text></docAuthor>
+    <navMap>
+        <navPoint class="{{format}}">
+            <navLabel><text>{{ user['userName'] }}'s Daily Digest</text></navLabel>
+            <content src="content.html" />
+            {% set feed_idx=0 %}
+            {% for feed in feeds %}
+                {% set feed_idx=feed_idx+1 %}
+                {% if feed.item_count > 0 %}
+                    {% if format == 'periodical' %}
+                        <navPoint class="section" id="{{ feed_idx }}">
+                            <navLabel><text>{{ escape(feed.title) }}</text></navLabel>
+                            <content src="content.html#section_{{ feed_idx }}" />
+                            {% set item_idx=0 %}
+                            {% for item in feed.items %}
+                                {% set item_idx=item_idx+1 %}
+                                <navPoint class="article" id="{{ feed_idx }}_{{ item_idx }}" playOrder="{{ item_idx }}">
+                                    <navLabel><text>{{ escape(item.title) }}</text></navLabel>
+                                    <content src="content.html#article_{{ feed_idx }}_{{ item_idx }}" />
+                                    {% if item.author %}<mbp:meta name="author">{{ item.author }}</mbp:meta> {% end %}
+                                </navPoint>
+                            {% end %}
+                        </navPoint>
+                    {% else %}
+                        {% set item_idx=0 %}
+                        {% for item in feed.items %}
+                            {% set item_idx=item_idx+1 %}
+                            <navPoint class="chapter" id="{{ feed_idx }}_{{ item_idx }}" playOrder="{{ item_idx }}">
+                                <navLabel><text>{{ escape(item.title) }}</text></navLabel>
+                                <content src="content.html#article_{{ feed_idx }}_{{ item_idx }}" />
+                            </navPoint>
+                        {% end %}
+                    {% end %}
+                {% end %}
+            {% end %}
+        </navPoint>
+    </navMap>
 </ncx>
 """
 TEMPLATES['content.opf'] = """<?xml version="1.0" encoding="utf-8"?>
@@ -226,16 +217,16 @@ TEMPLATES['content.opf'] = """<?xml version="1.0" encoding="utf-8"?>
 <metadata>
 <dc-metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
 {% if format == 'periodical' %}
-<dc:title>{{ user['userName'] }}'s Daily Digest({{ datetime.datetime.utcnow().strftime("%m/%d %H:%M") }})</dc:title>
+<dc:title>{{ user['userName'] }}'s Daily Digest({{ datetime.datetime.now(timezone).strftime("%m/%d %H:%M") }})</dc:title>
 {% else %}
-<dc:title>{{ user['userName'] }}'s Daily Digest({{ datetime.datetime.utcnow().strftime("%m/%d %H:%M") }})</dc:title>
+<dc:title>{{ user['userName'] }}'s Daily Digest({{ datetime.datetime.now(timezone).strftime("%m/%d %H:%M") }})</dc:title>
 {% end %}
 <dc:language>zh-CN</dc:language>
-<dc:identifier id="uid">{{ user['userName'] }}{{ datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ") }}</dc:identifier>
+<dc:identifier id="uid">{{ user['userName'] }}{{ datetime.datetime.now(timezone).strftime("%Y-%m-%dT%H:%M:%SZ") }}</dc:identifier>
 <dc:creator>kindlereader</dc:creator>
 <dc:publisher>kindlereader</dc:publisher>
 <dc:subject>{{ user['userName'] }}'s Daily Digest</dc:subject>
-<dc:date>{{ datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ") }}</dc:date>
+<dc:date>{{ datetime.datetime.now(timezone).strftime("%Y-%m-%dT%H:%M:%SZ") }}</dc:date>
 <dc:description></dc:description>
 </dc-metadata>
 {% if format == 'periodical' %}
