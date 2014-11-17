@@ -5,13 +5,13 @@
 # * $Id: Reader.py,v 0.0 2014/11/09 08:40:35 zhangzhiqiang Exp $
 # *************************************************************************/
 # /**
-# * \file		Reader.py
-# * \brief		reader services
+# * \file       Reader.py
+# * \brief      reader services
 # *
 # *
 # *
-# * \author		Zigler Zhang(zigler.zhang@ganji.com)
-# * \bug		No known bugs.
+# * \author     Zigler Zhang(zigler.zhang@ganji.com)
+# * \bug        No known bugs.
 # *
 # * $Date: 2014/11/09 08:40:46 $
 # * $Revision: 1.0 $
@@ -306,8 +306,13 @@ class Kindle(object):
                         shell=True)
         pre_mobi_file = os.path.join(data_dir, pre_mobi_file)
         mobi_file = pre_mobi_file+".mobi"
-        subprocess.call('python kindlestrip_v136.py "%s" "%s" >> log.txt' %
-                        (pre_mobi_file, mobi_file), shell=True)
+        status = subprocess.call(
+            'python kindlestrip_v136.py "%s" "%s" >> log.txt' %
+            (pre_mobi_file, mobi_file), shell=True)
+
+        if 0 != status:
+            import shutil
+            shutil.move(pre_mobi_file, mobi_file)
 
         if os.path.isfile(mobi_file) is False:
             logging.error("failed!")
