@@ -22,9 +22,19 @@ import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
+from tornado import template
 
 
 class Tools(object):
+    @staticmethod
+    def generate_config():
+        from configtemplate import TEMPLATES
+        t = template.Template(TEMPLATES['config.ini'])
+        content = t.generate()
+        fp = open('config.ini', 'wb')
+        content = content.decode('utf-8', 'ignore').encode('utf-8')
+        fp.write(content)
+        fp.close()
 
     @staticmethod
     def mail_magzine(filename,  config):

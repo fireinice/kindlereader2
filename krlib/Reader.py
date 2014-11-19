@@ -29,7 +29,6 @@ from BeautifulSoup import BeautifulSoup
 from librssreader.inoreader import RssReader, ClientAuthMethod, Item
 
 from ImageDownloader import ImageDownloadManager
-from kindletemplate import TEMPLATES
 
 
 class Reader(object):
@@ -265,7 +264,7 @@ class Kindle(object):
 
     @staticmethod
     def make_mobi(user, feeds, data_dir, kindle_format='book',
-                  **other_services):
+                  mobi_templates=None, **other_services):
         """docstring for make_mobi"""
         is_updated = False
         for feed in feeds:
@@ -279,11 +278,14 @@ class Kindle(object):
             kindle_format = 'book'
         logging.info("generate .mobi file start... ")
 
-        for tpl in TEMPLATES:
+        if not mobi_templates:
+            from kindletemplate import TEMPLATES
+            mobi_templates = TEMPLATES
+        for tpl in mobi_templates:
             if tpl is 'book.html':
                 continue
 
-            t = template.Template(TEMPLATES[tpl])
+            t = template.Template(mobi_templates[tpl])
             content = t.generate(
                 user=user,
                 feeds=feeds,
