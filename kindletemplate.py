@@ -135,26 +135,11 @@ page-break-after: always;
                 &nbsp;&#8226;&nbsp;
               {% end %}
               <a href="#articleSignal_{{ feed_idx }}_{{ item_idx }}">Return Feed</a>
-              &nbsp;&#8226;&nbsp;
-              {% if pocket_service %}
-                {% set pocket_url = pocket_service.getPocketInfo(item.url, item.title) %}
-                <a href="{{ pocket_url }}">Send to Pocket</a>
-              {% end %}
               <hr/>
               <div>{{ item.content }}</div>
               <br/>
               <a href="#articleSignal_{{ feed_idx }}_{{ item_idx }}">Return Feed</a>
-              &nbsp;&#8226;&nbsp;
-              {% if pocket_service %}
-                {% set pocket_url = pocket_service.getPocketInfo(item.url, item.title) %}
-                <a href="{{ pocket_url }}">Send to Pocket</a>
-              {% end %}
-              {% if feed.item_count == item_idx and read_marker is not None %}
-                {% set mark_read_url = read_marker.getMarkItemsReadURL(feed) %}
-                &nbsp;&#8226;&nbsp;
-                <a href="{{mark_read_url }}">Mark Above Items In Feed As Read</a>
-              {% end %}
-            </div>
+			</div>
             </mbp:section>
           {% end %}
         </div>

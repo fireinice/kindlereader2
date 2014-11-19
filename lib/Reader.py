@@ -307,7 +307,7 @@ class Kindle(object):
         pre_mobi_file = os.path.join(data_dir, pre_mobi_file)
         mobi_file = pre_mobi_file+".mobi"
         status = subprocess.call(
-            'python kindlestrip_v136.py "%s" "%s" >> log.txt' %
+            'kindlestrip.py "%s" "%s" >> log.txt' %
             (pre_mobi_file, mobi_file), shell=True)
 
         if 0 != status:

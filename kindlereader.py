@@ -25,7 +25,6 @@ work_dir = os.path.dirname(sys.argv[0])
 sys.path.append(os.path.join(work_dir, 'lib'))
 from Tools import Tools
 from Reader import Reader, Kindle
-from RelatedServices import PocketService, AESService, FeedReadMarker
 from KVData import KVData
 
 
@@ -41,6 +40,9 @@ if __name__ == '__main__':
     gflags.DEFINE_string('only_mail', '',
                          '[mobi_path] just send a mobi already generated',
                          short_name='m')
+    gflags.DEFINE_string('config', '',
+                         'specific the config file',
+                         short_name='c')
     try:
         FLAGS(sys.argv)  # parse flags
     except gflags.FlagsError, e:
@@ -56,7 +58,9 @@ if __name__ == '__main__':
                         datefmt='%m-%d %H:%M')
     socket.setdefaulttimeout(20)
 
-    conf_file = os.path.join(work_dir, "config.ini")
+    conf_file = FLAGS.config
+    if not conf_file:
+        conf_file = os.path.join(work_dir, "config.ini")
     if not os.path.isfile(conf_file):
         logging.error("config file '%s' not found" % conf_file)
         sys.exit(1)
@@ -69,17 +73,6 @@ if __name__ == '__main__':
     tz = pytz.timezone(config.get('general', 'timezone'))
 
     reorder = config.getboolean('reader', 'time_order')
-
-    service_host = config.get('third_party', 'service_host')
-    aes_secret = config.get('third_party', 'aes_service_secret')
-
-    pocket_service = None
-    read_marker = None
-    if service_host:
-        read_marker = FeedReadMarker(service_host)
-        if aes_secret:
-            aes_service = AESService(aes_secret)
-            pocket_service = PocketService(service_host, aes_service)
 
     data_dir = os.path.join(work_dir, 'data')
     if not os.path.exists(data_dir):
@@ -109,8 +102,6 @@ if __name__ == '__main__':
                                          data_dir,
                                          magzine_format,
                                          timezone=tz,
-                                         pocket_service=pocket_service,
-                                         read_marker=read_marker,
                                          )
 
             if mobi_file and mail_enable and FLAGS.mail:

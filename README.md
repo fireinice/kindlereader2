@@ -22,7 +22,6 @@ Licensed under the MIT license: [http://www.opensource.org/licenses/mit-license.
 * BeautifulSoup
 * python-gflags
 * kindlegen
-* pycrypt
 * pytz
 * Pillow (Optional)
 
@@ -30,8 +29,6 @@ Licensed under the MIT license: [http://www.opensource.org/licenses/mit-license.
 _By now ALL feature are only tested on Linux environment_.
 
         $ pip install tornado
-
-        $ pip install pycrypt
 
         $ pip install pytz
 
@@ -41,11 +38,7 @@ _By now ALL feature are only tested on Linux environment_.
 
         $ pip install python-gflags
 
-        $ git clone librssreader
-
-        $ cd librssreader; python setup.py sdist
-
-        $ pip install dist/librssreader-0.0.8.tar.gz
+        $ pip install librssreader
 
   Drop [kindlegen](http://www.amazon.com/gp/feature.html?docId=1000765211) in any dir that you can find it by `which kindlegen`
 

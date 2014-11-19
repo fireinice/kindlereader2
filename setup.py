@@ -12,9 +12,12 @@ setup(
     url              = 'https://github.com/fireinice/kindlereader2',
     license          = open("LICENSE.txt").read(),
 
-    install_requires = ['kindlestrip>=1.35',
+    install_requires = ['yakindlestrip>=1.35',
                         'librssreader>=0.0.5',
-                        'tornado>=3.0',],
+                        'tornado>=3.0',
+                        'pytz >= 2104.9',
+                        'BeautifulSoup >= 3.2.1',
+                        'python-gflags>=2.0'],
 
     packages         = ['kindlereader'],
     test_suite       = 'tests',
