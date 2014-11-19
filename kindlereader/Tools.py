@@ -17,14 +17,25 @@
 # * $Revision: 1.0 $
 # */
 
+import os
 import time
 import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
+from tornado import template
 
 
 class Tools(object):
+    @staticmethod
+    def generate_config(work_dir):
+        from configtemplate import TEMPLATES
+        t = template.Template(TEMPLATES['config.ini'])
+        content = t.generate()
+        fp = open(os.path.join(work_dir, 'config.ini'), 'wb')
+        content = content.decode('utf-8', 'ignore').encode('utf-8')
+        fp.write(content)
+        fp.close()
 
     @staticmethod
     def mail_magzine(filename,  config):

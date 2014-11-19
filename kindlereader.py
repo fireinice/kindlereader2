@@ -3,10 +3,11 @@
 """
 main.py
 Created by Jiedan<lxb429@gmail.com> on 2010-11-08.
+Modified by ZiglerZhang<zigler.zhang@gmail.com> on 2014-11-19
 """
 
-__author__ = "Jiedan<lxb429@gmail.com>"
-__version__ = "0.3.3"
+__author__ = "zigler.zhang@gmail.com"
+__version__ = "0.0.1"
 
 import sys
 reload(sys)
@@ -21,16 +22,18 @@ import pytz
 import gflags
 from gflags import FLAGS
 
-work_dir = os.path.dirname(sys.argv[0])
-sys.path.append(os.path.join(work_dir, 'lib'))
-from Tools import Tools
-from Reader import Reader, Kindle
-from KVData import KVData
+from kindlereader.Tools import Tools
+from kindlereader.Reader import Reader, Kindle
+from kindlereader.KVData import KVData
 
 
 if __name__ == '__main__':
+    work_dir = os.path.dirname(sys.argv[0])
+
     gflags.DEFINE_boolean('debug', False,
                           'produces debugging output', short_name='d')
+    gflags.DEFINE_boolean('generate_config', False,
+                          'generate the config template')
     gflags.DEFINE_boolean('mail', True,
                           'send mail after generate mobi file')
     gflags.DEFINE_boolean('since_time', True,
@@ -49,6 +52,11 @@ if __name__ == '__main__':
         print '%s\nUsage: %s ARGS\n%s' % (e, sys.argv[0], FLAGS)
         sys.exit(1)
 
+    if FLAGS.generate_config:
+        Tools.generate_config(work_dir)
+        print 'config generated, please fill it by your option'
+        sys.exit(0)
+
     if FLAGS.debug:
         log_lvl = logging.DEBUG
     else:
@@ -62,7 +70,7 @@ if __name__ == '__main__':
     if not conf_file:
         conf_file = os.path.join(work_dir, "config.ini")
     if not os.path.isfile(conf_file):
-        logging.error("config file '%s' not found" % conf_file)
+        print '%s\nUsage: %s ARGS\n%s' % (e, sys.argv[0], FLAGS)
         sys.exit(1)
 
     config = ConfigParser.SafeConfigParser()
