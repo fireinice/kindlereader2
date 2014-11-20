@@ -68,7 +68,7 @@ if __name__ == '__main__':
     if not conf_file:
         conf_file = os.path.join(work_dir, "config.ini")
     if not os.path.isfile(conf_file):
-        print '%s\nUsage: %s ARGS\n%s' % (e, sys.argv[0], FLAGS)
+        print 'conf file does not exist\nUsage: %s ARGS\n%s' % (sys.argv[0], FLAGS)
         sys.exit(1)
 
     config = ConfigParser.SafeConfigParser()
@@ -86,6 +86,7 @@ if __name__ == '__main__':
 
     if 0 != Kindle.check_kindle_gen():
         logging.error("do not find kindle book generator, exit...")
+        sys.exit(1)
 
     st = time.time()
     since_time = None
