@@ -37,15 +37,15 @@ class Tools(object):
         fp.close()
 
     @staticmethod
-    def mail_magzine(filename,  config):
+    def mail_magzine(filename,  **mail_conf):
         """send html to kindle"""
-        mail_host = config.get('mail', 'host')
-        mail_port = config.getint('mail', 'port')
-        mail_ssl = config.get('mail', 'ssl')
-        mail_from = config.get('mail', 'from')
-        mail_to = config.get('mail', 'to')
-        mail_username = config.get('mail', 'username')
-        mail_password = config.get('mail', 'password')
+        mail_host = mail_conf['host']
+        mail_port = mail_conf['port']
+        mail_ssl = mail_conf['ssl']
+        mail_from = mail_conf['from']
+        mail_to = mail_conf['to']
+        mail_username = mail_conf['username']
+        mail_password = mail_conf['password']
         if not mail_from:
             raise Exception("'mail from' is empty")
         if not mail_to:

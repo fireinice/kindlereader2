@@ -35,45 +35,32 @@ class Reader(object):
     """docstring for KindleReader"""
     output_dir = None
     config = None
-    template_dir = None
-    password = None
-    remove_tags = ['script', 'object','video','embed','iframe','noscript', 'style']
-    remove_attributes = ['class','id','title','style','width','height','onclick']
+    remove_tags = ['script', 'object', 'video',
+                   'embed', 'iframe', 'noscript', 'style']
+    remove_attributes = ['class', 'id', 'title',
+                         'style', 'width', 'height', 'onclick']
     max_image_number = 0
     user_agent = "kindlereader"
 
-    def __init__(self, output_dir, config=None, template_dir=None):
+    def __init__(self, output_dir, **config):
+        print config
         self.output_dir = output_dir
 
         self.config = config
 
-        if template_dir is not None and os.path.isdir(template_dir) is False:
-            raise Exception("template dir '%s' not found" % template_dir)
-        else:
-            self.template_dir = template_dir
+        username = self.config['username']
+        password = self.config['password']
 
-        self.password = self.get_config('reader', 'password')
-        if not self.password:
-            self.password = getpass.getpass(
+        if not password:
+            password = getpass.getpass(
                 "please input your google reader's password:")
-        username = self.get_config('reader', 'username')
-        password = self.get_config('reader', 'password')
-
-        if not password and self.password:
-            password = self.password
 
         if not username or not password:
-            raise Exception("google reader's username or password is empty!")
+            raise Exception("reader's username or password is empty!")
 
         auth = ClientAuthMethod(username, password)
         self.reader = RssReader(auth)
         self.user_info = self.reader.getUserInfo()
-
-    def get_config(self, section, name):
-        try:
-            return self.config.get(section, name).strip()
-        except:
-            return None
 
     def is_url_blocked(self, url):
         if(url.find("feedsportal.com") >= 0 or
@@ -133,8 +120,8 @@ class Reader(object):
         return soup.renderContents('utf-8'), images
 
     def get_valid_feeds(self, categories):
-        select_categories = self.get_config('reader', 'select_categories')
-        skip_categories = self.get_config('reader', 'skip_categories')
+        select_categories = self.config['select_categories']
+        skip_categories = self.config['skip_categories']
 
         selects = []
         if select_categories:
@@ -176,11 +163,10 @@ class Reader(object):
         categories = self.reader.getCategories()
         feeds = self.get_valid_feeds(categories)
 
-        max_items_number = self.config.getint('reader', 'max_items_number')
-        mark_read = self.config.getint('reader', 'mark_read')
-        exclude_read = self.config.getint('reader', 'exclude_read')
-        max_image_per_article = self.config.getint(
-            'reader', 'max_image_per_article')
+        max_items_number = int(self.config['max_items_number'])
+        mark_read = int(self.config['mark_read'])
+        exclude_read = int(self.config['exclude_read'])
+        max_image_per_article = self.config['max_image_per_article']
 
         try:
             max_image_per_article = int(max_image_per_article)

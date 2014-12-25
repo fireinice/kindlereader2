@@ -96,10 +96,10 @@ if __name__ == '__main__':
     logging.info("welcome, start ...")
     try:
         if FLAGS.only_mail:
-            Tools.mail_magzine(FLAGS.only_mail, config)
+            Tools.mail_magzine(FLAGS.only_mail, **dict(config.items('mail')))
             sys.exit(0)
 
-        reader = Reader(output_dir=data_dir, config=config)
+        reader = Reader(data_dir, **dict(config.items('reader')))
 
         updated_feeds = reader.check_feeds_update(since_time, reorder)
 
@@ -112,7 +112,7 @@ if __name__ == '__main__':
                                          )
 
             if mobi_file and mail_enable and FLAGS.mail:
-                Tools.mail_magzine(mobi_file, config)
+                Tools.mail_magzine(mobi_file, **dict(config.items('mail')))
 
     except Exception:
         import traceback

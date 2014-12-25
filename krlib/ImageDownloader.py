@@ -85,9 +85,11 @@ class ImageDownloader(threading.Thread):
                     try:
                         size = 768, 1024
                         img = Image.open(i['filename'])
-                        new_img = img.convert("L")
-                        new_img.thumbnail(size, Image.ANTIALIAS)
-                        new_img.save(i['filename'])
+                        #http://pillow.readthedocs.org/en/latest/handbook/image-file-formats.html
+                        img.draft("L", size)
+                        # new_img = img.convert("L")
+                        # new_img.thumbnail(size, Image.ANTIALIAS)
+                        img.save(i['filename'])
                     except:
                         pass
                 logging.info("download: %s" % i['url'])
