@@ -43,7 +43,6 @@ class Reader(object):
     user_agent = "kindlereader"
 
     def __init__(self, output_dir, **config):
-        print config
         self.output_dir = output_dir
 
         self.config = config
@@ -65,7 +64,8 @@ class Reader(object):
     def is_url_blocked(self, url):
         if(url.find("feedsportal.com") >= 0 or
            url.find("feedsky.com") >= 0 or
-           url.startswith("http://union.vancl.com/")):
+           url.startswith("http://union.vancl.com/") or
+           url.startswith("http://www.inoreader.com/adv")):
             return True
         else:
             return False
